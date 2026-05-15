@@ -1,0 +1,16 @@
+[project]
+name = "sn38-chronogpt"
+version = "0.1.0"
+description = "SN38 ChronoGPT Subnet"
+requires-python = ">=3.11"
+dependencies = [
+    "bittensor>=8.0.0",
+    "torch>=2.0",
+    "transformers>=4.48.0",
+    "huggingface_hub>=0.20.0",
+    "numpy>=1.0",
+    "requests>=2.0",
+    "tiktoken>=0.5.0",
+    "openai>=1.0.0",
+    "dstack-sdk>=0.1.0",
+]
