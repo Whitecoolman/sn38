@@ -18,23 +18,23 @@ Miners train a collection of language models, one per year (2013-2025). Each mod
 
 ```
 Miners                          Validators (TEE)                    Backend (private)
-  |                                  |                                    |
-  |  Train models per year           |                                    |
-  |  Upload to HuggingFace           |                                    |
-  |  Submit on-chain                 |                                    |
+  |                                   |                                    |
+  |  Train models per year            |                                    |
+  |  Upload to HuggingFace            |                                    |
+  |  Submit on-chain                  |                                    |
   |  ------------------------------>  |                                    |
-  |                                  |  Download models                   |
-  |                                  |  Fetch private evaluation data     |
-  |                                  |  <---------------------------------|
-  |                                  |                                    |
-  |                                  |  Stage 1: Check chronological      |
-  |                                  |           consistency per year     |
-  |                                  |                                    |
-  |                                  |  Stage 2: Quality evaluation       |
-  |                                  |           via LLM judge duels      |
-  |                                  |                                    |
-  |                                  |  Set weights on-chain              |
-  |                                  |                                    |
+  |                                   |  Download models                   |
+  |                                   |  Fetch private evaluation data     |
+  |                                   |  <---------------------------------|
+  |                                   |                                    |
+  |                                   |  Stage 1: Check chronological      |
+  |                                   |           consistency per year     |
+  |                                   |                                    |
+  |                                   |  Stage 2: Quality evaluation       |
+  |                                   |           via LLM judge duels      |
+  |                                   |                                    |
+  |                                   |  Set weights on-chain              |
+  |                                   |                                    |
 ```
 
 ## Scoring
