@@ -4,7 +4,7 @@
 
 Train chronologically consistent ChronoGPT models and compete for emissions.
 
-You train one model per year (2013-2025), upload them to HuggingFace, and submit a mapping on-chain. Validators evaluate your models for consistency and quality.
+You train one model per year (2013-2024 included), upload them to HuggingFace, and submit a mapping on-chain. Validators evaluate your models for consistency and quality.
 
 ## Requirements
 
@@ -45,7 +45,7 @@ To specify a branch, use `@`:
 }
 ```
 
-No `@` defaults to the `main` branch. You should submit all 13 years — missing years receive the worst possible score.
+No `@` defaults to the `main` branch. You should submit all expected years — missing years receive the worst possible score.
 
 ## Step 3: Register and submit
 
