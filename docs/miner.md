@@ -107,6 +107,8 @@ curl https://api.chronollm.com/submissions/{round}/{uid}
 
 ## Scoring
 
+You can find all the variables of the scoring method at:[https://api.chronollm.com/docs](https://api.chronollm.com/docs)
+
 Your models are evaluated in two stages:
 
 1. **Consistency check** — each year is validated against a private dataset. The score reflects how well your model respects its temporal boundary. Missing years or errors receive the worst score.
