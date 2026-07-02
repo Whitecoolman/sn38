@@ -19,7 +19,7 @@ import numpy as np
 import bittensor as bt
 
 from ..template.chronogpt_model import load_model
-from ..template.constants import ALL_YEARS, NETWORKS
+from ..template.constants import NETWORKS
 from ..template.model_store import download_model, parse_repo, get_repo_file_size, count_model_params, get_device
 from ..template.backend_api import BackendAPI
 from ..template.validator_db import get_connection, get_cached_result, save_result, is_week_evaluated, mark_week_evaluated
@@ -27,7 +27,7 @@ from ..template.leak import evaluate
 from ..template.quality import run_quality_duels
 
 BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8000")
-NUM_YEARS = len(ALL_YEARS)
+
 
 def run(args):
     bt.logging.set_info()
@@ -35,6 +35,8 @@ def run(args):
     api = BackendAPI(BACKEND_URL)
 
     config = api.get_config()
+    ALL_YEARS = api.get_years()
+    NUM_YEARS = len(ALL_YEARS)
     eval_round = api.get_eval_round()
     bt.logging.info(f"Config: {config}")
     bt.logging.info(f"Eval round: {eval_round}")
@@ -114,15 +116,23 @@ def run(args):
                             bt.logging.warning(f"UID {uid}: timeout, remaining years skipped")
                             break
 
-                        benchmark = api.get_benchmark(year)
-                        if not benchmark:
+                        benchmark_unknown = api.get_benchmark(year)
+                        benchmark_known = api.get_benchmark(year, known=True)
+                        if not benchmark_unknown:
                             bt.logging.warning(f"UID {uid}: no benchmark for year {year}, skipping")
                             continue
 
-                        failed, score = evaluate(model, device, benchmark)
+                        failed_leak, median_unknown = evaluate(model, device, benchmark_unknown)
+                        passed_known, median_known = evaluate(model, device, benchmark_known)
+                        passed = not failed_leak and passed_known
+
+                        if not passed:
+                            score = WORST_SCORE
+                        else:
+                            score = median_unknown - median_known
                         year_scores[year] = score
-                        save_result(conn, uid, year, repo_id, not failed, score)
-                        bt.logging.info(f"UID {uid} year {year}: passed={not failed} score={score:.4f}")
+                        save_result(conn, uid, year, repo_id, passed, score)
+                        bt.logging.info(f"UID {uid} year {year}: leak={not failed_leak} known={passed_known} unknown={median_unknown:.4f} known={median_known:.4f} score={score:.4f}")
 
                     del model
 
@@ -134,9 +144,9 @@ def run(args):
 
     # Qualify top N for Stage 2 (more negative = better, WORST_SCORE = 0.0)
     top_n = config.get("top_n_for_quality", 10)
-    min_leak_score = config.get("min_leak_score", -20.0)
+    min_eval_score = config.get("min_eval_score", -20.0)
     ranked = sorted(leak_scores.items(), key=lambda x: x[1])  # most negative first
-    qualified = [(uid, score) for uid, score in ranked if score < min_leak_score][:top_n]
+    qualified = [(uid, score) for uid, score in ranked if score < min_eval_score][:top_n]
 
     bt.logging.info(f"Stage 1 done: {len(qualified)} miners qualified")
     for uid, score in qualified:
@@ -153,7 +163,7 @@ def run(args):
         return
 
     # Normalize leak scores to 0-1 with fixed bounds
-    leak_min = config.get("min_leak_score", -20.0)  # best possible
+    leak_min = config.get("min_eval_score", -20.0)  # best possible
     leak_max = config.get("leak_epsilon", -6.0)
     leak_range = leak_min - leak_max  # negative
     normalized_leak = {uid: max(0.0, min(1.0, (score - leak_max) / leak_range)) for uid, score in qualified}
@@ -175,7 +185,7 @@ def run(args):
             for uid, score in qualified:
                 final_scores[uid] = normalized_leak[uid]
         else:
-            win_rates = run_quality_duels(qualified, submissions, questions, metagraph)
+            win_rates = run_quality_duels(qualified, submissions, questions, metagraph, ALL_YEARS)
             leak_weight = config.get("leak_weight", 0.7)
             quality_weight = config.get("quality_weight", 0.3)
             final_scores = np.zeros(metagraph.n)
